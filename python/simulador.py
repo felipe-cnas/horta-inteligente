@@ -1,5 +1,23 @@
+import sqlite3
+from datetime import datetime
 import random
 import time
+
+# Cria a ligação ao banco de dados ( se o ficheiro não existir, ele vai ser criado )
+conn = sqlite3.connect("horta.db")
+cursor = conn.cursor()
+
+# Vai ser criado a tabela para guardar o histórico se ainda não existir
+cursor.execute('''
+	CREATE TABLE IF NOT EXISTS leituras (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		data_hora TEXT,
+		umidade REAL,
+		temperatura REAL,
+		luminosidade INTEGER
+	)
+''')
+conn.commit()
 
 print("--- SIMULADOR AVANÇADO DE MONITORAMENTO DA HORTA---")
 
@@ -11,7 +29,18 @@ bomba_ligada = False
 	
 while True:
 	print("\n[Lendo sensores em tempo real...]")
+	#1. Pega data e hora atual formatada ( Por exemplo 25/10/2026 10:35:25)
+	agora = datetime.now().strftime("%d/%m/%y %H:%M:%S")
 	
+	#2. Prepara o comando SQL para inserir os dados na tabela
+	cursor.execute('''
+		INSERT INTO leituras (data_hora, umidade, temperatura, luminosidade)
+		VALUES ( ?, ?, ?, ?)
+	''', (agora, umidade_solo, temperatura, luminosidade))
+	
+	#3. Salva a alteração no ficheiro de forma definitiva
+	conn.commit()
+ 
 	
 	#2. Simulação do Clima (Flutuações naturais e graduais)
 	# A luminosidade muda pouco a cada ciclo
