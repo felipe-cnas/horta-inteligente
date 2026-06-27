@@ -1,23 +1,37 @@
 import sqlite3
 
-	# Conecta ao banco de dados horta.db
-conn = sqlite3.connect("horta.db")
-cursor = conn.cursor()
+def ler_historico():
+    # Conecta ao banco de dados
+    conexao = sqlite3.connect("horta.db")
+    cursor = conexao.cursor()
+    
+	# Busca os últimos 10 registros, incluindo o status da bomba
+    cursor.execute("SELECT id, data_hora, temperatura, umidade, status_bomba FROM leituras ORDER BY id DESC LIMIT 10")
+    linhas = cursor.fetchall()
+    
+    # Fecha a conexão
+    conexao.close()
+    
+    # Se o banco estiver vazio
+    if not linhas:
+        print("📭 Nenhum dado encontrado no banco ainda.")
+        return
+        
+    # Imprime o cabeçalho formatado
+    print("-" * 75)
+    print(f"{'ID':<5} | {'Data / Hora (UTC)':<20} | {'Temp':<7} | {'Umidade':<9} | {'Status Bomba':<12}")
+    print("-" * 75)
+    
+    # Imprime cada linha do banco de dados
+    for linha in linhas:
+        id_reg, data_hora, temp, umidade, bomba = linha
+        # Garante que se o 'bomba' for None (dados antigos), mostra um aviso
+        status_bomba = bomba if bomba else "N/A"
+        
+        print(f"{id_reg:<5} | {data_hora:<20} | {temp:<5}°C | {umidade:<6}% | {status_bomba:<12}")
+        
+    print("-" * 75)
 
-	# Busca as últimas 10 leituras que foram gravadas
-cursor.execute("SELECT * FROM leituras ORDER BY id DESC LIMIT 10")
-linhas = cursor.fetchall()
-
-print("\n--- HISTÓRICO DE LEITURAS (ÚLTIMAS 10) ---")
-print(f"{'ID':<5} | {'Data/Hora':<20} | {'Umidade':<0} | {'Temp':<6} | {'Luz':<4}")
-print("-" * 60)
-
-
-for linha in linhas:
-	# linha[0]=id, linha[1]=data_hora, linha[2]=umidade, linha[3]=temperatura, linha[4]=luminosidade
-	print(f"{linha[0]:<5} | {linha[1]:<20} | {linha[2]:<7.1f}% | {linha[3]:<4.1f}°C | {linha[4]:<3}%")
-	
-	
-	
-# Fecha a conexão
-conn.close()
+if __name__ == "__main__":
+    print("📊 Buscando as últimas 10 leituras da horta...\n")
+    ler_historico()
